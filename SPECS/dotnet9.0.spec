@@ -10,20 +10,20 @@
 
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
-%global upstream_tag v9.0.0-preview.7.24405.7
+%global upstream_tag v9.0.0
 %global upstream_tag_without_v %(echo %{upstream_tag} | sed -e 's|^v||')
 
-%global hostfxr_version 9.0.0-preview.7.24405.7
-%global runtime_version 9.0.0-preview.7.24405.7
-%global aspnetcore_runtime_version 9.0.0-preview.7.24406.2
-%global sdk_version 9.0.100-preview.7.24407.1
+%global hostfxr_version %{runtime_version}
+%global runtime_version 9.0.0
+%global aspnetcore_runtime_version 9.0.0
+%global sdk_version 9.0.100
 %global sdk_feature_band_version %(echo %{sdk_version} | cut -d '-' -f 1 | sed -e 's|[[:digit:]][[:digit:]]$|00|')
 %global templates_version %{aspnetcore_runtime_version}
 #%%global templates_version %%(echo %%{runtime_version} | awk 'BEGIN { FS="."; OFS="." } {print $1, $2, $3+1 }')
 
-%global runtime_rpm_version 9.0.0~preview.7.24405.7
-%global aspnetcore_runtime_rpm_version 9.0.0~preview.7.24406.2
-%global sdk_rpm_version 9.0.100~preview.7.24407.1
+%global runtime_rpm_version %{runtime_version}
+%global aspnetcore_runtime_rpm_version %{aspnetcore_runtime_version}
+%global sdk_rpm_version %{sdk_version}
 
 %global use_bundled_brotli 0
 %global use_bundled_libunwind 1
@@ -70,7 +70,7 @@
 
 Name:           dotnet%{dotnetver}
 Version:        %{sdk_rpm_version}
-Release:        0.2%{?dist}
+Release:        1%{?dist}
 Summary:        .NET Runtime and SDK
 License:        0BSD AND Apache-2.0 AND (Apache-2.0 WITH LLVM-exception) AND APSL-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSD-4-Clause AND BSL-1.0 AND bzip2-1.0.6 AND CC0-1.0 AND CC-BY-3.0 AND CC-BY-4.0 AND CC-PDDC AND CNRI-Python AND EPL-1.0 AND GPL-2.0-only AND (GPL-2.0-only WITH GCC-exception-2.0) AND GPL-2.0-or-later AND GPL-3.0-only AND ICU AND ISC AND LGPL-2.1-only AND LGPL-2.1-or-later AND LicenseRef-Fedora-Public-Domain AND LicenseRef-ISO-8879 AND MIT AND MIT-Wu AND MS-PL AND MS-RL AND NCSA AND OFL-1.1 AND OpenSSL AND Unicode-DFS-2015 AND Unicode-DFS-2016 AND W3C-19980720 AND X11 AND Zlib
 
@@ -81,7 +81,7 @@ URL:            https://github.com/dotnet/
 # ./build-dotnet-bootstrap-tarball %%{upstream_tag}
 Source0:        dotnet-%{upstream_tag}-x64-bootstrap.tar.gz
 # The bootstrap SDK version is one listed in the global.json file of the main source archive
-%global bootstrap_sdk_version 9.0.100-preview.7.24380.2
+%global bootstrap_sdk_version 9.0.100-rc.1.24452.12
 # Binaries can be at one of several different URLs:
 # GA releases:
 # Source1:        https://dotnetcli.azureedge.net/dotnet/Sdk/%%{bootstrap_sdk_version}/dotnet-sdk-%%{bootstrap_sdk_version}-linux-arm64.tar.gz
@@ -96,7 +96,7 @@ Source1:        https://dotnetbuilds.azureedge.net/public/Sdk/%{bootstrap_sdk_ve
 # 4. Use `build-prebuilt-archive` to create the archive from the VMR
 # 5. Update the version below to match the SDK that was built from the VMR
 # The ppc64le/s390x SDK version is one produced
-%global bootstrap_sdk_version_ppc64le_s390x 9.0.100-preview.7.24380.1
+%global bootstrap_sdk_version_ppc64le_s390x 9.0.100-rc.1.24452.1
 Source2:        dotnet-prebuilts-%{bootstrap_sdk_version_ppc64le_s390x}-ppc64le.tar.gz
 Source3:        dotnet-prebuilts-%{bootstrap_sdk_version_ppc64le_s390x}-s390x.tar.gz
 %else
@@ -409,9 +409,13 @@ Summary:        Ahead-of-Time (AOT) support for the .NET %{dotnetver} Software D
 
 Requires:       dotnet-sdk-%{dotnetver}%{?_isa} >= %{sdk_rpm_version}-%{release}
 
-#TODO
-Requires:       clang
-Requires:       zlib
+# When installing AOT support, also install all dependencies needed to build
+# NativeAOT applications. AOT invokes `clang ... -lssl -lcrypto -lbrotlienc
+# -lbrotlidec -lz ...`.
+Requires:       brotli-devel%{?_isa}
+Requires:       clang%{?_isa}
+Requires:       openssl-devel%{?_isa}
+Requires:       zlib-devel%{?_isa}
 
 %description -n dotnet-sdk-aot-%{dotnetver}
 This package provides Ahead-of-time (AOT) compilation support for the .NET SDK.
@@ -838,6 +842,30 @@ export COMPlus_LTTng=0
 
 
 %changelog
+* Fri Nov 01 2024 Omair Majid <omajid@redhat.com> - 9.0.100-1
+- Update to .NET SDK 9.0.100 and Runtime 9.0.0
+- Resolves: RHEL-65539
+
+* Fri Oct 25 2024 Omair Majid <omajid@redhat.com> - 9.0.100~rc.2.24474.1-0.7
+- Disable bootstrap
+- Related: RHEL-62776
+
+* Tue Oct 22 2024 Omair Majid <omajid@redhat.com> - 9.0.100~rc.2.24474.1-0.6
+- Rebootstrap
+- Related: RHEL-62776
+
+* Thu Oct 17 2024 Omair Majid <omajid@redhat.com> - 9.0.100~rc.2.24474.1-0.5
+- Add missing runtime dependencies to -aot- subpackage
+- Related: RHEL-62776
+
+* Tue Oct 15 2024 Omair Majid <omajid@redhat.com> - 9.0.100~rc.2.24474.1-0.4
+- Update to .NET SDK 9.0.100-rc.2.24474.1 and Runtime 9.0.0-rc.2.24473.5
+- Resolves: RHEL-62776
+
+* Wed Sep 11 2024 Omair Majid <omajid@redhat.com> - 9.0.100~rc.1.24452.12-0.3
+- Update to .NET SDK 9.0.100-rc.1.24452.12 and Runtime 9.0.0-rc.1.24431.7
+- Resolves: RHEL-59026
+
 * Sun Aug 18 2024 Omair Majid <omajid@redhat.com> - 9.0.100~preview.7.24407.1-0.2
 - Disable bootstrap
 - Related: RHEL-48617
