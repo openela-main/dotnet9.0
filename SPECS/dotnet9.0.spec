@@ -70,7 +70,7 @@
 
 Name:           dotnet%{dotnetver}
 Version:        %{sdk_rpm_version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        .NET Runtime and SDK
 License:        0BSD AND Apache-2.0 AND (Apache-2.0 WITH LLVM-exception) AND APSL-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSD-4-Clause AND BSL-1.0 AND bzip2-1.0.6 AND CC0-1.0 AND CC-BY-3.0 AND CC-BY-4.0 AND CC-PDDC AND CNRI-Python AND EPL-1.0 AND GPL-2.0-only AND (GPL-2.0-only WITH GCC-exception-2.0) AND GPL-2.0-or-later AND GPL-3.0-only AND ICU AND ISC AND LGPL-2.1-only AND LGPL-2.1-or-later AND LicenseRef-Fedora-Public-Domain AND LicenseRef-ISO-8879 AND MIT AND MIT-Wu AND MS-PL AND MS-RL AND NCSA AND OFL-1.1 AND OpenSSL AND Unicode-DFS-2015 AND Unicode-DFS-2016 AND W3C-19980720 AND X11 AND Zlib
 
@@ -642,7 +642,28 @@ system_libs=
     system_libs=$system_libs+zlib+
 %endif
 
-VERBOSE=1 timeout 5h \
+%ifarch ppc64le s390x
+max_attempts=3
+%else
+max_attempts=1
+%endif
+
+function retry_until_success {
+	local exit_code=1
+	local tries=$1
+	shift
+    set +e
+    while [[ $exit_code != 0 ]] && [[ $tries != 0 ]]; do
+        (( tries = tries - 1 ))
+        "$@"
+        exit_code=$?
+    done
+    set -e
+    return $exit_code
+}
+
+VERBOSE=1 retry_until_success $max_attempts \
+    timeout 5h \
     ./build.sh \
     --source-only \
     --release-manifest %{SOURCE5} \
@@ -842,29 +863,29 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Thu Mar 27 2025 Omair Majid <omajid@redhat.com> - 9.0.105-1
+* Wed Apr 09 2025 Omair Majid <omajid@redhat.com> - 9.0.105-2
 - Update to .NET SDK 9.0.105 and Runtime 9.0.4
-- Resolves: RHEL-85288
+- Resolves: RHEL-85280
 
-* Fri Feb 28 2025 Omair Majid <omajid@redhat.com> - 9.0.104-1
+* Tue Mar 11 2025 Omair Majid <omajid@redhat.com> - 9.0.104-2
 - Update to .NET SDK 9.0.104 and Runtime 9.0.3
-- Resolves: RHEL-81649
+- Resolves: RHEL-81648
 
-* Thu Jan 30 2025 Omair Majid <omajid@redhat.com> - 9.0.103-1
+* Mon Feb 17 2025 Omair Majid <omajid@redhat.com> - 9.0.103-2
 - Update to .NET SDK 9.0.103 and Runtime 9.0.2
-- Resolves: RHEL-76906
+- Resolves: RHEL-76905
 
-* Tue Dec 17 2024 Omair Majid <omajid@redhat.com> - 9.0.102-1
+* Thu Jan 16 2025 Omair Majid <omajid@redhat.com> - 9.0.102-2
 - Update to .NET SDK 9.0.102 and Runtime 9.0.1
-- Resolves: RHEL-71552
+- Resolves: RHEL-71550
 
-* Tue Dec 03 2024 Omair Majid <omajid@redhat.com> - 9.0.101-2
+* Thu Dec 05 2024 Omair Majid <omajid@redhat.com> - 9.0.101-3
 - Update to .NET SDK 9.0.101 and Runtime 9.0.0
-- Resolves: RHEL-69752
+- Resolves: RHEL-69749
 
-* Fri Nov 01 2024 Omair Majid <omajid@redhat.com> - 9.0.100-1
+* Wed Nov 20 2024 Omair Majid <omajid@redhat.com> - 9.0.100-2
 - Update to .NET SDK 9.0.100 and Runtime 9.0.0
-- Resolves: RHEL-65539
+- Resolves: RHEL-65538
 
 * Fri Oct 25 2024 Omair Majid <omajid@redhat.com> - 9.0.100~rc.2.24474.1-0.7
 - Disable bootstrap
