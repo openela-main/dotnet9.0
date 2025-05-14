@@ -10,13 +10,13 @@
 
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
-%global upstream_tag v9.0.4
+%global upstream_tag v9.0.5
 %global upstream_tag_without_v %(echo %{upstream_tag} | sed -e 's|^v||')
 
 %global hostfxr_version %{runtime_version}
-%global runtime_version 9.0.4
-%global aspnetcore_runtime_version 9.0.4
-%global sdk_version 9.0.105
+%global runtime_version 9.0.5
+%global aspnetcore_runtime_version 9.0.5
+%global sdk_version 9.0.106
 %global sdk_feature_band_version %(echo %{sdk_version} | cut -d '-' -f 1 | sed -e 's|[[:digit:]][[:digit:]]$|00|')
 %global templates_version %{aspnetcore_runtime_version}
 #%%global templates_version %%(echo %%{runtime_version} | awk 'BEGIN { FS="."; OFS="." } {print $1, $2, $3+1 }')
@@ -843,7 +843,11 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Thu Mar 27 2025 Omair Majid <omajid@redhat.com> - 9.0.105-1
+* Fri May 02 2025 Omair Majid <omajid@redhat.com> - 9.0.106-1
+- Update to .NET SDK 9.0.106 and Runtime 9.0.5
+- Resolves: RHEL-89451
+
+* Wed Apr 09 2025 Omair Majid <omajid@redhat.com> - 9.0.105-2
 - Update to .NET SDK 9.0.105 and Runtime 9.0.4
 - Resolves: RHEL-85279
 
