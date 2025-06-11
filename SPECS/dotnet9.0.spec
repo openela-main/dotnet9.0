@@ -10,13 +10,13 @@
 
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
-%global upstream_tag v9.0.5
+%global upstream_tag v9.0.6
 %global upstream_tag_without_v %(echo %{upstream_tag} | sed -e 's|^v||')
 
 %global hostfxr_version %{runtime_version}
-%global runtime_version 9.0.5
-%global aspnetcore_runtime_version 9.0.5
-%global sdk_version 9.0.106
+%global runtime_version 9.0.6
+%global aspnetcore_runtime_version 9.0.6
+%global sdk_version 9.0.107
 %global sdk_feature_band_version %(echo %{sdk_version} | cut -d '-' -f 1 | sed -e 's|[[:digit:]][[:digit:]]$|00|')
 %global templates_version %{aspnetcore_runtime_version}
 #%%global templates_version %%(echo %%{runtime_version} | awk 'BEGIN { FS="."; OFS="." } {print $1, $2, $3+1 }')
@@ -643,8 +643,36 @@ system_libs=
     system_libs=$system_libs+zlib+
 %endif
 
-VERBOSE=1 timeout 5h \
-    ./build.sh \
+%ifarch ppc64le s390x
+max_attempts=3
+%else
+max_attempts=1
+%endif
+
+function retry_until_success {
+    local exit_code=1
+    local tries=$1
+    shift
+    set +e
+    while [[ $exit_code != 0 ]] && [[ $tries != 0 ]]; do
+        (( tries = tries - 1 ))
+        "$@"
+        exit_code=$?
+    done
+    set -e
+    return $exit_code
+}
+
+
+cat >dotnet-rpm-build.sh <<EOF
+#!/bin/bash
+
+set -euo pipefail
+set -x
+
+find -depth -name 'artifacts' -type d -print -exec rm -rf {} \;
+
+./build.sh \
     --source-only \
     --release-manifest %{SOURCE5} \
 %if %{without bootstrap_dotnet}
@@ -661,6 +689,13 @@ VERBOSE=1 timeout 5h \
     /p:ContinueOnPrebuiltBaselineError=true \
     /v:n \
     /p:LogVerbosity=n
+EOF
+
+chmod +x dotnet-rpm-build.sh
+
+VERBOSE=1 retry_until_success $max_attempts \
+    timeout 5h \
+    ./dotnet-rpm-build.sh
 
 
 sed -e 's|[@]LIBDIR[@]|%{_libdir}|g' %{SOURCE21} > dotnet.sh
@@ -843,7 +878,11 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Fri May 02 2025 Omair Majid <omajid@redhat.com> - 9.0.106-1
+* Thu May 29 2025 Omair Majid <omajid@redhat.com> - 9.0.107-1
+- Update to .NET SDK 9.0.107 and Runtime 9.0.6
+- Resolves: RHEL-94422
+
+* Tue May 13 2025 Omair Majid <omajid@redhat.com> - 9.0.106-2
 - Update to .NET SDK 9.0.106 and Runtime 9.0.5
 - Resolves: RHEL-89451
 
