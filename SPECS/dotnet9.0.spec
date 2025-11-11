@@ -8,6 +8,10 @@
 
 %global dotnetver 9.0
 
+# Only the package for the latest dotnet version should provide RPMs like
+# dotnet-host
+%global is_latest_dotnet 0
+
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
 %global upstream_tag v9.0.111
@@ -70,7 +74,7 @@
 
 Name:           dotnet%{dotnetver}
 Version:        %{sdk_rpm_version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        .NET Runtime and SDK
 License:        0BSD AND Apache-2.0 AND (Apache-2.0 WITH LLVM-exception) AND APSL-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSD-4-Clause AND BSL-1.0 AND bzip2-1.0.6 AND CC0-1.0 AND CC-BY-3.0 AND CC-BY-4.0 AND CC-PDDC AND CNRI-Python AND EPL-1.0 AND GPL-2.0-only AND (GPL-2.0-only WITH GCC-exception-2.0) AND GPL-2.0-or-later AND GPL-3.0-only AND ICU AND ISC AND LGPL-2.1-only AND LGPL-2.1-or-later AND LicenseRef-Fedora-Public-Domain AND LicenseRef-ISO-8879 AND MIT AND MIT-Wu AND MS-PL AND MS-RL AND NCSA AND OFL-1.1 AND OpenSSL AND Unicode-DFS-2015 AND Unicode-DFS-2016 AND W3C-19980720 AND X11 AND Zlib
 
@@ -727,6 +731,7 @@ find %{buildroot}%{_libdir}/dotnet/ -type f -name '*.targets' -exec chmod -x {} 
 find %{buildroot}%{_libdir}/dotnet/ -type f -name '*.txt' -exec chmod -x {} \;
 find %{buildroot}%{_libdir}/dotnet/ -type f -name '*.xml' -exec chmod -x {} \;
 
+%if %{is_latest_dotnet}
 install -dm 0755 %{buildroot}%{_sysconfdir}/profile.d/
 install dotnet.sh %{buildroot}%{_sysconfdir}/profile.d/
 
@@ -750,6 +755,7 @@ echo "%{_libdir}/dotnet" >> install_location
 install install_location %{buildroot}%{_sysconfdir}/dotnet/
 echo "%{_libdir}/dotnet" >> install_location_%{runtime_arch}
 install install_location_%{runtime_arch} %{buildroot}%{_sysconfdir}/dotnet/
+%endif
 
 install -dm 0755 %{buildroot}%{_libdir}/dotnet/source-built-artifacts
 install -m 0644 artifacts/assets/Release/Private.SourceBuilt.Artifacts.*.tar.gz %{buildroot}/%{_libdir}/dotnet/source-built-artifacts/
@@ -773,6 +779,18 @@ find %{buildroot}%{_libdir}/dotnet/sdk -type d | tail -n +2 | sed -E 's|%{buildr
 find %{buildroot}%{_libdir}/dotnet/sdk -type f -and -not -name '*.pdb' | sed -E 's|%{buildroot}||' >> dotnet-sdk-non-dbg-files
 find %{buildroot}%{_libdir}/dotnet/sdk -type f -name '*.pdb'  | sed -E 's|%{buildroot}||' > dotnet-sdk-dbg-files
 
+%if %{is_latest_dotnet} == 0
+# If this is an older version, self-test now, before we delete files. After we
+# delete files, we will not have everything we need to self-test in %%check.
+%{buildroot}%{_libdir}/dotnet/dotnet --info
+%{buildroot}%{_libdir}/dotnet/dotnet --version
+
+# Provided by dotnet-host from another SRPM
+rm %{buildroot}%{_libdir}/dotnet/LICENSE.txt
+rm %{buildroot}%{_libdir}/dotnet/ThirdPartyNotices.txt
+rm %{buildroot}%{_libdir}/dotnet/dotnet
+%endif
+
 
 
 %check
@@ -781,8 +799,10 @@ find %{buildroot}%{_libdir}/dotnet/sdk -type f -name '*.pdb'  | sed -E 's|%{buil
 export COMPlus_LTTng=0
 %endif
 
+%if %{is_latest_dotnet}
 %{buildroot}%{_libdir}/dotnet/dotnet --info
 %{buildroot}%{_libdir}/dotnet/dotnet --version
+%endif
 
 
 
@@ -791,6 +811,7 @@ export COMPlus_LTTng=0
 # empty package useful for dependencies
 %endif
 
+%if %{is_latest_dotnet}
 %files -n dotnet-host
 %dir %{_libdir}/dotnet
 %{_libdir}/dotnet/dotnet
@@ -809,6 +830,7 @@ export COMPlus_LTTng=0
 %dir %{_datadir}/zsh
 %dir %{zsh_completions_dir}
 %{_datadir}/zsh/site-functions/_dotnet
+%endif
 
 %files -n dotnet-hostfxr-%{dotnetver}
 %dir %{_libdir}/dotnet/host/fxr
@@ -863,29 +885,29 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Sun Oct 05 2025 Omair Majid <omajid@redhat.com> - 9.0.111-1
+* Tue Oct 14 2025 Omair Majid <omajid@redhat.com> - 9.0.111-2
 - Update to .NET SDK 9.0.111 and Runtime 9.0.10
-- Resolves: RHEL-116857
+- Resolves: RHEL-116858
 
-* Tue Sep 02 2025 Omair Majid <omajid@redhat.com> - 9.0.110-1
+* Wed Sep 10 2025 Omair Majid <omajid@redhat.com> - 9.0.110-2
 - Update to .NET SDK 9.0.110 and Runtime 9.0.9
-- Resolves: RHEL-112267
+- Resolves: RHEL-112269
 
-* Thu Jul 31 2025 Omair Majid <omajid@redhat.com> - 9.0.109-1
+* Mon Aug 11 2025 Omair Majid <omajid@redhat.com> - 9.0.109-2
 - Update to .NET SDK 9.0.109 and Runtime 9.0.8
-- Resolves: RHEL-106730
+- Resolves: RHEL-106728
 
-* Thu Jun 26 2025 Omair Majid <omajid@redhat.com> - 9.0.108-1
+* Tue Jul 08 2025 Omair Majid <omajid@redhat.com> - 9.0.108-2
 - Update to .NET SDK 9.0.108 and Runtime 9.0.7
-- Resolves: RHEL-100601
+- Resolves: RHEL-100599
 
-* Thu May 29 2025 Omair Majid <omajid@redhat.com> - 9.0.107-1
+* Wed Jun 11 2025 Omair Majid <omajid@redhat.com> - 9.0.107-2
 - Update to .NET SDK 9.0.107 and Runtime 9.0.6
-- Resolves: RHEL-94424
+- Resolves: RHEL-94421
 
-* Fri May 02 2025 Omair Majid <omajid@redhat.com> - 9.0.106-1
+* Tue May 13 2025 Omair Majid <omajid@redhat.com> - 9.0.106-2
 - Update to .NET SDK 9.0.106 and Runtime 9.0.5
-- Resolves: RHEL-89453
+- Resolves: RHEL-89450
 
 * Wed Apr 09 2025 Omair Majid <omajid@redhat.com> - 9.0.105-2
 - Update to .NET SDK 9.0.105 and Runtime 9.0.4
