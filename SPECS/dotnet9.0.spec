@@ -8,15 +8,19 @@
 
 %global dotnetver 9.0
 
+# Only the package for the latest dotnet version should provide RPMs like
+# dotnet-host and netstandard-targeting-pack-2.1
+%global is_latest_dotnet 0
+
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
-%global upstream_tag v9.0.111
+%global upstream_tag v9.0.112
 %global upstream_tag_without_v %(echo %{upstream_tag} | sed -e 's|^v||')
 
 %global hostfxr_version %{runtime_version}
-%global runtime_version 9.0.10
-%global aspnetcore_runtime_version 9.0.10
-%global sdk_version 9.0.111
+%global runtime_version 9.0.11
+%global aspnetcore_runtime_version 9.0.11
+%global sdk_version 9.0.112
 %global sdk_feature_band_version %(echo %{sdk_version} | cut -d '-' -f 1 | sed -e 's|[[:digit:]][[:digit:]]$|00|')
 %global templates_version %{aspnetcore_runtime_version}
 #%%global templates_version %%(echo %%{runtime_version} | awk 'BEGIN { FS="."; OFS="." } {print $1, $2, $3+1 }')
@@ -742,9 +746,9 @@ find %{buildroot}%{_libdir}/dotnet/ -type f -name '*.targets' -exec chmod -x {} 
 find %{buildroot}%{_libdir}/dotnet/ -type f -name '*.txt' -exec chmod -x {} \;
 find %{buildroot}%{_libdir}/dotnet/ -type f -name '*.xml' -exec chmod -x {} \;
 
+%if %{is_latest_dotnet}
 install -dm 0755 %{buildroot}%{_sysconfdir}/profile.d/
 install dotnet.sh %{buildroot}%{_sysconfdir}/profile.d/
-
 
 # Install dynamic completions
 install -dm 0755 %{buildroot}/%{bash_completions_dir}
@@ -765,6 +769,7 @@ echo "%{_libdir}/dotnet" >> install_location
 install install_location %{buildroot}%{_sysconfdir}/dotnet/
 echo "%{_libdir}/dotnet" >> install_location_%{runtime_arch}
 install install_location_%{runtime_arch} %{buildroot}%{_sysconfdir}/dotnet/
+%endif
 
 install -dm 0755 %{buildroot}%{_libdir}/dotnet/source-built-artifacts
 install -m 0644 artifacts/assets/Release/Private.SourceBuilt.Artifacts.*.tar.gz %{buildroot}/%{_libdir}/dotnet/source-built-artifacts/
@@ -788,6 +793,18 @@ find %{buildroot}%{_libdir}/dotnet/sdk -type d | tail -n +2 | sed -E 's|%{buildr
 find %{buildroot}%{_libdir}/dotnet/sdk -type f -and -not -name '*.pdb' | sed -E 's|%{buildroot}||' >> dotnet-sdk-non-dbg-files
 find %{buildroot}%{_libdir}/dotnet/sdk -type f -name '*.pdb'  | sed -E 's|%{buildroot}||' > dotnet-sdk-dbg-files
 
+%if %{is_latest_dotnet} == 0
+# If this is an older version, self-test now, before we delete files. After we
+# delete files, we will not have everything we need to self-test in %%check.
+%{buildroot}%{_libdir}/dotnet/dotnet --info
+%{buildroot}%{_libdir}/dotnet/dotnet --version
+
+# Provided by dotnet-host from another SRPM
+rm %{buildroot}%{_libdir}/dotnet/LICENSE.txt
+rm %{buildroot}%{_libdir}/dotnet/ThirdPartyNotices.txt
+rm %{buildroot}%{_libdir}/dotnet/dotnet
+%endif
+
 
 
 %check
@@ -796,11 +813,14 @@ find %{buildroot}%{_libdir}/dotnet/sdk -type f -name '*.pdb'  | sed -E 's|%{buil
 export COMPlus_LTTng=0
 %endif
 
+%if %{is_latest_dotnet}
 %{buildroot}%{_libdir}/dotnet/dotnet --info
 %{buildroot}%{_libdir}/dotnet/dotnet --version
+%endif
 
 
 
+%if %{is_latest_dotnet}
 %if ( 0%{?fedora} && 0%{?fedora} < 38 ) || ( 0%{?rhel} && 0%{?rhel} < 9 )
 %files -n dotnet
 # empty package useful for dependencies
@@ -824,6 +844,7 @@ export COMPlus_LTTng=0
 %dir %{_datadir}/zsh
 %dir %{zsh_completions_dir}
 %{_datadir}/zsh/site-functions/_dotnet
+%endif
 
 %files -n dotnet-hostfxr-%{dotnetver}
 %dir %{_libdir}/dotnet/host/fxr
@@ -878,7 +899,11 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Sun Oct 05 2025 Omair Majid <omajid@redhat.com> - 9.0.111-1
+* Mon Nov 03 2025 Omair Majid <omajid@redhat.com> - 9.0.112-1
+- Update to .NET SDK 9.0.112 and Runtime 9.0.11
+- Resolves: RHEL-125742
+
+* Tue Oct 14 2025 Omair Majid <omajid@redhat.com> - 9.0.111-2
 - Update to .NET SDK 9.0.111 and Runtime 9.0.10
 - Resolves: RHEL-116856
 
