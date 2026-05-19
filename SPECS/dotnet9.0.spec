@@ -74,7 +74,7 @@
 
 Name:           dotnet%{dotnetver}
 Version:        %{sdk_rpm_version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        .NET Runtime and SDK
 License:        0BSD AND Apache-2.0 AND (Apache-2.0 WITH LLVM-exception) AND APSL-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSD-4-Clause AND BSL-1.0 AND bzip2-1.0.6 AND CC0-1.0 AND CC-BY-3.0 AND CC-BY-4.0 AND CC-PDDC AND CNRI-Python AND EPL-1.0 AND GPL-2.0-only AND (GPL-2.0-only WITH GCC-exception-2.0) AND GPL-2.0-or-later AND GPL-3.0-only AND ICU AND ISC AND LGPL-2.1-only AND LGPL-2.1-or-later AND LicenseRef-Fedora-Public-Domain AND LicenseRef-ISO-8879 AND MIT AND MIT-Wu AND MS-PL AND MS-RL AND NCSA AND OFL-1.1 AND OpenSSL AND Unicode-DFS-2015 AND Unicode-DFS-2016 AND W3C-19980720 AND X11 AND Zlib
 
@@ -908,25 +908,25 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Wed Apr 08 2026 Omair Majid <omajid@redhat.com> - 9.0.116-1
+* Fri Apr 17 2026 Omair Majid <omajid@redhat.com> - 9.0.116-2
 - Update to .NET SDK 9.0.116 and Runtime 9.0.15
-- Resolves: RHEL-163396
+- Resolves: RHEL-163400
 
-* Tue Mar 03 2026 Dominik Rehák <drehak@redhat.com> - 9.0.115-1
+* Thu Mar 26 2026 Dominik Rehák <drehak@redhat.com> - 9.0.115-2
 - Update to .NET SDK 9.0.115 and Runtime 9.0.14
-- Resolves: RHEL-152946
+- Resolves: RHEL-152947
 
-* Mon Feb 02 2026 Omair Majid <omajid@redhat.com> - 9.0.114-1
+* Wed Feb 11 2026 Omair Majid <omajid@redhat.com> - 9.0.114-2
 - Update to .NET SDK 9.0.114 and Runtime 9.0.13
-- Resolves: RHEL-144977
+- Resolves: RHEL-144971
 
-* Thu Jan 08 2026 Omair Majid <omajid@redhat.com> - 9.0.113-1
+* Wed Jan 14 2026 Omair Majid <omajid@redhat.com> - 9.0.113-2
 - Update to .NET SDK 9.0.113 and Runtime 9.0.12
-- Resolves: RHEL-138648
+- Resolves: RHEL-138646
 
-* Mon Nov 03 2025 Omair Majid <omajid@redhat.com> - 9.0.112-1
+* Wed Nov 12 2025 Omair Majid <omajid@redhat.com> - 9.0.112-2
 - Update to .NET SDK 9.0.112 and Runtime 9.0.11
-- Resolves: RHEL-125746
+- Resolves: RHEL-125744
 
 * Tue Oct 14 2025 Omair Majid <omajid@redhat.com> - 9.0.111-2
 - Update to .NET SDK 9.0.111 and Runtime 9.0.10
