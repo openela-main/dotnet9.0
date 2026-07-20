@@ -14,13 +14,13 @@
 
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
-%global upstream_tag v9.0.118
+%global upstream_tag v9.0.119
 %global upstream_tag_without_v %(echo %{upstream_tag} | sed -e 's|^v||')
 
 %global hostfxr_version %{runtime_version}
-%global runtime_version 9.0.17
-%global aspnetcore_runtime_version 9.0.17
-%global sdk_version 9.0.118
+%global runtime_version 9.0.18
+%global aspnetcore_runtime_version 9.0.18
+%global sdk_version 9.0.119
 %global sdk_feature_band_version %(echo %{sdk_version} | cut -d '-' -f 1 | sed -e 's|[[:digit:]][[:digit:]]$|00|')
 %global templates_version %{aspnetcore_runtime_version}
 #%%global templates_version %%(echo %%{runtime_version} | awk 'BEGIN { FS="."; OFS="." } {print $1, $2, $3+1 }')
@@ -659,6 +659,8 @@ function retry_until_success {
     set +e
     while [[ $exit_code != 0 ]] && [[ $tries != 0 ]]; do
         (( tries = tries - 1 ))
+        # Clean stale build state so retries start fresh.
+        rm -rf .packages $(find . -name artifacts -type d)
         "$@"
         exit_code=$?
     done
@@ -666,8 +668,68 @@ function retry_until_success {
     return $exit_code
 }
 
+# Runs a command and kills it if it produces no output.
+# Use a longer timeout on machines with fewer cores since builds are slower.
+function output_timeout {
+    # 30m on machines with more than 4 cores, 60m on smaller machines where builds are slower.
+    # The aarch64 Neoverse N1 CI machines have 4 cores and need the longer timeout.
+    local nprocs=$(nproc)
+    local idle_timeout=1800
+    if (( nprocs <= 4 )); then
+        idle_timeout=3600
+    fi
+
+    # Create a pipe we'll read the output from for timeout detection.
+    local fifo=$(mktemp -u)
+    mkfifo "$fifo"
+
+    # Create a process group so we can kill every process including children.
+    # And use a long timeout (5h) in (the unlikely) case output timeout detection continues to be triggered.
+    setsid timeout --foreground 5h "$@" &> "$fifo" &
+    local cmd_pid=$!
+
+    # Read lines from the output with a timeout.
+    # Disable tracing to avoid 'set -x' noise from the read loop appearing in the output.
+    local timed_out=false
+    local traceflags=$-
+    set +x
+    while true; do
+        local rc=0
+        IFS= read -t $idle_timeout -r line || rc=$?
+        if (( rc == 0 )); then
+            printf '%s\n' "$line"
+        elif (( rc > 128 )); then
+            echo "output_timeout: no output for ${idle_timeout}s" >&2
+            timed_out=true
+            break
+        else
+            [[ -z $line ]] || printf '%s\n' "$line"
+            break
+        fi
+    done < "$fifo"
+    [[ $traceflags != *x* ]] || set -x
+
+    if $timed_out; then
+        # Hang detected: kill the process group, then collect the exit code.
+        kill -9 -- -$cmd_pid 2>/dev/null || true
+        wait $cmd_pid 2>/dev/null
+        local exit_code=$?
+    else
+        # Normal exit: collect the real exit code, then clean up any orphaned processes.
+        wait $cmd_pid 2>/dev/null
+        local exit_code=$?
+        kill -9 -- -$cmd_pid 2>/dev/null || true
+    fi
+
+    # Cleanup.
+    rm -f "$fifo"
+
+    return $exit_code
+}
+
+
 VERBOSE=1 retry_until_success $max_attempts \
-    timeout 5h \
+    output_timeout \
     ./build.sh \
     --source-only \
     --release-manifest %{SOURCE5} \
@@ -885,6 +947,14 @@ export COMPlus_LTTng=0
 
 
 %changelog
+* Wed Jul 08 2026 Satish Mane <satmane@redhat.com> - 9.0.119-1
+- Update to .NET SDK 9.0.119 and Runtime 9.0.18
+- Resolves: RHEL-192472
+
+* Thu Jul 02 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-2
+- Reduce time to detect hanging builds
+- Resolves: RHEL-191646
+
 * Wed Jun 03 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-1
 - Update to .NET SDK 9.0.118 and Runtime 9.0.17
 - Resolves: RHEL-181553
