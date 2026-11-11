@@ -74,7 +74,7 @@
 
 Name:           dotnet%{dotnetver}
 Version:        %{sdk_rpm_version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        .NET Runtime and SDK
 License:        0BSD AND Apache-2.0 AND (Apache-2.0 WITH LLVM-exception) AND APSL-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSD-4-Clause AND BSL-1.0 AND bzip2-1.0.6 AND CC0-1.0 AND CC-BY-3.0 AND CC-BY-4.0 AND CC-PDDC AND CNRI-Python AND EPL-1.0 AND GPL-2.0-only AND (GPL-2.0-only WITH GCC-exception-2.0) AND GPL-2.0-or-later AND GPL-3.0-only AND ICU AND ISC AND LGPL-2.1-only AND LGPL-2.1-or-later AND LicenseRef-Fedora-Public-Domain AND LicenseRef-ISO-8879 AND MIT AND MIT-Wu AND MS-PL AND MS-RL AND NCSA AND OFL-1.1 AND OpenSSL AND Unicode-DFS-2015 AND Unicode-DFS-2016 AND W3C-19980720 AND X11 AND Zlib
 
@@ -947,37 +947,37 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Mon Oct 26 2026 Omair Majid <omajid@redhat.com> - 9.0.123-1
+* Thu Oct 29 2026 Omair Majid <omajid@redhat.com> - 9.0.123-2
 - Update to .NET SDK 9.0.123 and Runtime 9.0.22
-- Resolves: RHEL-291727
+- Resolves: RHEL-291729
 
-* Thu Oct 08 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.122-1
+* Wed Oct 14 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.122-2
 - Update to .NET SDK 9.0.122 and Runtime 9.0.21
-- Resolves: RHEL-277800
+- Resolves: RHEL-277802
 
-* Wed Sep 02 2026 Dominik Rehák <drehak@redhat.com> - 9.0.121-1
+* Mon Sep 14 2026 Dominik Rehák <drehak@redhat.com> - 9.0.121-2
 - Update to .NET SDK 9.0.121 and Runtime 9.0.20
-- Resolves: RHEL-252278
+- Resolves: RHEL-252280
 
-* Sun Aug 09 2026 Omair Majid <omajid@redhat.com> - 9.0.120-1
+* Fri Aug 14 2026 Omair Majid <omajid@redhat.com> - 9.0.120-2
 - Update to .NET SDK 9.0.120 and Runtime 9.0.19
-- Resolves: RHEL-235476
+- Resolves: RHEL-235474
 
-* Wed Jul 08 2026 Satish Mane <satmane@redhat.com> - 9.0.119-1
+* Thu Jul 23 2026 Satish Mane <satmane@redhat.com> - 9.0.119-2
 - Update to .NET SDK 9.0.119 and Runtime 9.0.18
-- Resolves: RHEL-192472
+- Resolves: RHEL-192470
 
-* Thu Jul 02 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-2
+* Thu Jul 02 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-3
 - Reduce time to detect hanging builds
-- Resolves: RHEL-191646
+- Resolves: RHEL-191643
 
-* Wed Jun 03 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-1
+* Wed Jun 10 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-2
 - Update to .NET SDK 9.0.118 and Runtime 9.0.17
-- Resolves: RHEL-181553
+- Resolves: RHEL-181551
 
-* Wed May 06 2026 Omair Majid <omajid@redhat.com> - 9.0.117-1
+* Thu May 28 2026 Omair Majid <omajid@redhat.com> - 9.0.117-2
 - Update to .NET SDK 9.0.117 and Runtime 9.0.16
-- Resolves: RHEL-173918
+- Resolves: RHEL-173916
 
 * Fri Apr 17 2026 Omair Majid <omajid@redhat.com> - 9.0.116-2
 - Update to .NET SDK 9.0.116 and Runtime 9.0.15
