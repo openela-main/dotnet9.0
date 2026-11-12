@@ -14,13 +14,13 @@
 
 # upstream can produce releases with a different tag than the SDK version
 #%%global upstream_tag v%%{runtime_version}
-%global upstream_tag v9.0.123
+%global upstream_tag v9.0.124
 %global upstream_tag_without_v %(echo %{upstream_tag} | sed -e 's|^v||')
 
 %global hostfxr_version %{runtime_version}
-%global runtime_version 9.0.22
-%global aspnetcore_runtime_version 9.0.22
-%global sdk_version 9.0.123
+%global runtime_version 9.0.23
+%global aspnetcore_runtime_version 9.0.23
+%global sdk_version 9.0.124
 %global sdk_feature_band_version %(echo %{sdk_version} | cut -d '-' -f 1 | sed -e 's|[[:digit:]][[:digit:]]$|00|')
 %global templates_version %{aspnetcore_runtime_version}
 #%%global templates_version %%(echo %%{runtime_version} | awk 'BEGIN { FS="."; OFS="." } {print $1, $2, $3+1 }')
@@ -166,6 +166,7 @@ BuildRequires:  llvm-libunwind-devel
 BuildRequires:  lttng-ust-devel
 BuildRequires:  make
 BuildRequires:  openssl-devel
+BuildRequires:  procps-ng
 BuildRequires:  python3
 %if ! %{use_bundled_rapidjson}
 BuildRequires:  rapidjson-devel
@@ -575,6 +576,8 @@ lscpu
 
 
 %build
+cat /proc/cpuinfo
+cat /proc/meminfo
 cat /etc/os-release
 
 %if %{without bootstrap}
@@ -759,20 +762,24 @@ find -depth -name 'artifacts' -type d -print -exec rm -rf {} \;
   /p:UseSystemLibs=${system_libs} \
   /p:TargetRid=%{runtime_id} \
   /p:OfficialBuilder="$vendor" \
-  /p:MinimalConsoleLogOutput=false \
   /p:ContinueOnPrebuiltBaselineError=true \
-  /v:n \
-  /p:LogVerbosity=n
+  #/p:MinimalConsoleLogOutput=false \
+  #/v:n \
+  #/p:LogVerbosity=n
 EOF
 
 chmod +x dotnet-rpm-build.sh
 
 VERBOSE=1 retry_until_success $max_attempts \
     output_timeout \
-    ./dotnet-rpm-build.sh
+    ./dotnet-rpm-build.sh || { cat /proc/cpuinfo; cat /proc/meminfo; env; exit 1; }
+
 
 
 sed -e 's|[@]LIBDIR[@]|%{_libdir}|g' %{SOURCE21} > dotnet.sh
+
+env
+ps aux
 
 
 
@@ -970,37 +977,41 @@ export COMPlus_LTTng=0
 
 
 %changelog
-* Mon Oct 26 2026 Omair Majid <omajid@redhat.com> - 9.0.123-1
+* Fri Nov 06 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.124-1
+- Update to .NET SDK 9.0.124 and Runtime 9.0.23
+- Resolves: RHEL-302546
+
+* Thu Oct 29 2026 Omair Majid <omajid@redhat.com> - 9.0.123-2
 - Update to .NET SDK 9.0.123 and Runtime 9.0.22
-- Resolves: RHEL-291728
+- Resolves: RHEL-291730
 
-* Thu Oct 08 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.122-1
+* Wed Oct 14 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.122-2
 - Update to .NET SDK 9.0.122 and Runtime 9.0.21
-- Resolves: RHEL-277801
+- Resolves: RHEL-277803
 
-* Wed Sep 02 2026 Dominik Rehák <drehak@redhat.com> - 9.0.121-1
+* Mon Sep 14 2026 Dominik Rehák <drehak@redhat.com> - 9.0.121-2
 - Update to .NET SDK 9.0.121 and Runtime 9.0.20
-- Resolves: RHEL-252279
+- Resolves: RHEL-252281
 
-* Sun Aug 09 2026 Omair Majid <omajid@redhat.com> - 9.0.120-1
+* Fri Aug 14 2026 Omair Majid <omajid@redhat.com> - 9.0.120-2
 - Update to .NET SDK 9.0.120 and Runtime 9.0.19
-- Resolves: RHEL-235477
+- Resolves: RHEL-235475
 
-* Wed Jul 08 2026 Satish Mane <satmane@redhat.com> - 9.0.119-1
+* Thu Jul 23 2026 Satish Mane <satmane@redhat.com> - 9.0.119-2
 - Update to .NET SDK 9.0.119 and Runtime 9.0.18
-- Resolves: RHEL-192473
+- Resolves: RHEL-192471
 
-* Thu Jul 02 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-2
+* Thu Jul 02 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-3
 - Reduce time to detect hanging builds
-- Resolves: RHEL-191644
+- Resolves: RHEL-191642
 
-* Wed Jun 03 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-1
+* Wed Jun 10 2026 Tom Deseyn <tdeseyn@redhat.com> - 9.0.118-2
 - Update to .NET SDK 9.0.118 and Runtime 9.0.17
-- Resolves: RHEL-181554
+- Resolves: RHEL-181552
 
-* Wed May 06 2026 Omair Majid <omajid@redhat.com> - 9.0.117-1
+* Thu May 28 2026 Omair Majid <omajid@redhat.com> - 9.0.117-2
 - Update to .NET SDK 9.0.117 and Runtime 9.0.16
-- Resolves: RHEL-173919
+- Resolves: RHEL-173917
 
 * Fri Apr 17 2026 Omair Majid <omajid@redhat.com> - 9.0.116-2
 - Update to .NET SDK 9.0.116 and Runtime 9.0.15
